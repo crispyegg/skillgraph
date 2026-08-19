@@ -2,6 +2,14 @@
 
 A full-stack MERN-style application (Express + React) backed by **CognoDB**, a managed graph database, used through the official **neo4j-driver** (CognoDB speaks openCypher over Bolt, so it works with standard Neo4j tooling).
 
+## Live Demo
+
+- **Live app:** https://skillgraph-dl6yy4ptm-asifs-projects-5c171bd3.vercel.app/jobs
+- **Backend API:** https://skillgraph-ir7d.onrender.com
+- **GitHub repo:** [YOUR GITHUB REPO URL HERE]
+
+> Note: the backend is hosted on Render's free tier, which spins down after inactivity. The first request after idle may take 30–50 seconds to respond — please wait for it to wake up.
+
 ## Why a graph database?
 
 Job matching is fundamentally a network problem, not a table problem:
@@ -31,11 +39,6 @@ Job matching is fundamentally a network problem, not a table problem:
 | `POSTED_BY` | Job → Company | — |
 | `WORKED_ON` | Candidate → Project | — |
 
-```
-(Candidate)-[:HAS_SKILL]->(Skill)-[:RELATED_TO]-(Skill)<-[:REQUIRES_SKILL]-(Job)-[:POSTED_BY]->(Company)
-(Candidate)-[:WORKED_AT]->(Company)
-(Candidate)-[:WORKED_ON]->(Project)<-[:WORKED_ON]-(Candidate)
-```
 
 ## Setup
 
@@ -68,29 +71,34 @@ npm run dev               # starts React app on http://localhost:5173
 
 All queries use parameterised Cypher via the driver (`session.run(query, params)`) — no string concatenation.
 
+### A note on the colleague-match query
+
+The colleague-network match originally tried to exclude candidates who already have a skill using Cypher's `WHERE NOT (pattern)`. This construct behaved unreliably on this CognoDB instance during testing — the graph traversal itself worked correctly, but the negated pattern exclusion did not return expected results.
+
+The fix: the multi-hop graph traversal (finding candidates connected through shared projects) stays in Cypher, since that's the part that genuinely needs a graph query. The final exclusion check ("does this candidate already have the skill?") was moved into application code using a simple `Set` lookup, which is easy to verify and debug.
+
 ## Project structure
 
-```
+## Project structure
+
 skillgraph/
-├── server/               # Express API
-│   ├── config/db.js       # neo4j-driver connection, read from env
-│   ├── controllers/        # request/response handling
-│   ├── services/            # Cypher queries live here
-│   ├── routes/
-│   ├── middleware/errorHandler.js
-│   ├── scripts/seed.js + seedData.js
-│   └── server.js
-└── client/                 # React (Vite) + Tailwind
-    └── src/
-        ├── api/client.js
-        ├── components/
-        └── pages/
+├── server/ # Express API
+│ ├── config/db.js # neo4j-driver connection, read from env
+│ ├── controllers/ # request/response handling
+│ ├── services/ # Cypher queries live here
+│ ├── routes/
+│ ├── middleware/errorHandler.js
+│ ├── scripts/seed.js + seedData.js
+│ └── server.js
+└── client/ # React (Vite) + Tailwind
+└── src/
+├── api/client.js
+├── components/
+└── pages/
 ```
 
 ## Error handling
 
 If CognoDB is unreachable, the API returns a `503` with a clear message instead of crashing (see `middleware/errorHandler.js` and the try/catch + connectivity check in `config/db.js`). The frontend shows a dedicated error state rather than a blank screen.
 
-## Screenshots / Demo
 
-_Add screenshots and hosted demo link here before submission._
