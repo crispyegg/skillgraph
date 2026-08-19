@@ -40,6 +40,7 @@ export async function getCandidate(candidateId) {
   return response.data;
 }
 
+
 export async function getJobsForCandidate(candidateId) {
   const response = await api.get('/matches/candidates/' + candidateId + '/jobs');
   return response.data;
