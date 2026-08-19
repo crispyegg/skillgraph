@@ -101,6 +101,4 @@ skillgraph/
 
 If CognoDB is unreachable, the API returns a `503` with a clear message instead of crashing (see `middleware/errorHandler.js` and the try/catch + connectivity check in `config/db.js`). The frontend shows a dedicated error state rather than a blank screen.
 
-## Screenshots / Demo
 
-_Add screenshots and hosted demo link here before submission._
